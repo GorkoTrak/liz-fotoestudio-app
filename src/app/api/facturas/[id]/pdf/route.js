@@ -46,7 +46,7 @@ export async function GET(request, context) {
              f.fecha_emision::text AS fecha_emision,
              f.fecha_vencimiento::text AS fecha_vencimiento,
              cl.nombre, cl.apellido, cl.telefono, cl.email,
-             s.fecha_sesion::text AS fecha_sesion, s.hora_sesion::text AS hora_sesion,
+             s.fecha_sesion::text AS fecha_sesion, s.hora_sesion::text AS hora_sesion, s.hora_fin::text AS hora_fin,
              p.nombre AS servicio, p.precio AS servicio_precio, p.categoria AS servicio_categoria
       FROM facturas f
       JOIN clientes cl ON f.cliente_id = cl.id

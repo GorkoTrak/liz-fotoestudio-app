@@ -99,6 +99,7 @@ export async function GET(request) {
         SELECT s.*,
                s.fecha_sesion::text AS fecha_sesion,
                s.hora_sesion::text AS hora_sesion,
+               s.hora_fin::text AS hora_fin,
                cl.nombre, cl.apellido, cl.telefono,
                p.nombre AS servicio,
                fv.id AS factura_id,
@@ -256,6 +257,14 @@ export async function POST(request) {
       let hora_sesion = (body.hora_sesion || '').trim();
       if (hora_sesion.length === 5) hora_sesion += ':00';
 
+      let hora_fin = (body.hora_fin || '').trim();
+      if (hora_fin.length === 5) hora_fin += ':00';
+      if (!hora_fin && hora_sesion) {
+        const parts = hora_sesion.split(':');
+        const hNum = (parseInt(parts[0], 10) + 1) % 24;
+        hora_fin = `${String(hNum).padStart(2, '0')}:${parts[1] || '00'}:00`;
+      }
+
       let abono = Math.max(0, parseFloat(body.abono || '0'));
       const estado_entrega = (body.estado_entrega || 'pendiente').trim();
       const notas = (body.notas || '').trim();
@@ -360,6 +369,7 @@ export async function POST(request) {
               producto_id = ${producto_id_principal},
               fecha_sesion = ${fecha_sesion},
               hora_sesion = ${hora_sesion},
+              hora_fin = ${hora_fin},
               total = ${total},
               abono = ${abono},
               estado_pago = ${estado_pago},
@@ -419,8 +429,8 @@ export async function POST(request) {
             : 'pendiente';
 
         const insSes = await sql`
-          INSERT INTO sesiones (cliente_id, cita_id, producto_id, fecha_sesion, hora_sesion, total, abono, estado_pago, estado_entrega, notas, metodo_pago)
-          VALUES (${cliente_id}, ${cita_id}, ${producto_id_principal}, ${fecha_sesion}, ${hora_sesion}, ${total}, ${abono}, ${estado_pago}, ${estado_entrega}, ${notas}, ${metodo_pago})
+          INSERT INTO sesiones (cliente_id, cita_id, producto_id, fecha_sesion, hora_sesion, hora_fin, total, abono, estado_pago, estado_entrega, notas, metodo_pago)
+          VALUES (${cliente_id}, ${cita_id}, ${producto_id_principal}, ${fecha_sesion}, ${hora_sesion}, ${hora_fin}, ${total}, ${abono}, ${estado_pago}, ${estado_entrega}, ${notas}, ${metodo_pago})
           RETURNING id
         `;
         const nuevaSesionId = insSes[0].id;

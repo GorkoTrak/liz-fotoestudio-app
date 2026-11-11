@@ -96,6 +96,7 @@ CREATE TABLE IF NOT EXISTS sesiones (
   producto_id INT REFERENCES productos(id) ON DELETE SET NULL,
   fecha_sesion DATE NOT NULL,
   hora_sesion TIME DEFAULT NULL,
+  hora_fin TIME DEFAULT NULL,
   total NUMERIC(12,2) NOT NULL DEFAULT 0.00,
   abono NUMERIC(12,2) NOT NULL DEFAULT 0.00,
   saldo NUMERIC(12,2) GENERATED ALWAYS AS (total - abono) STORED,
@@ -173,6 +174,11 @@ async function importar() {
   try {
     console.log('1. Asegurando estructura de tablas en Neon...');
     await pool.query(DDL);
+    await pool.query(`
+      ALTER TABLE sesiones ADD COLUMN IF NOT EXISTS hora_fin TIME DEFAULT NULL;
+      ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS activo SMALLINT DEFAULT 1;
+      ALTER TABLE usuarios ALTER COLUMN foto_perfil TYPE TEXT;
+    `);
 
     console.log('2. Vaciando tablas para reemplazo limpio...');
     await pool.query(`
